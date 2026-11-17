@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Phrase Slot Machine</title>
+    <!-- Add basic favicon to prevent 404 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎰</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000000; /* Deep black for letterboxing outside 16:9 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden; /* No scrolling */
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* 16:9 Fixed Stage */
+        .stage {
+            aspect-ratio: 16 / 9;
+            width: 100%;
+            max-width: calc(100vh * 16 / 9);
+            height: 100%;
+            max-height: calc(100vw * 9 / 16);
+            background-color: #1e1b4b; /* Deep indigo */
+            background-image: radial-gradient(circle at center, #312e81 0%, #1e1b4b 100%);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 2% 4%;
+            box-sizing: border-box;
+            overflow: hidden; /* Keep all elements contained */
+        }
+
+        .font-fredoka {
+            font-family: 'Fredoka One', cursive;
+        }
+
+        /* Slot specific styles */
+        .slot-window {
+            box-shadow: inset 0 10px 15px -3px rgba(0, 0, 0, 0.5), inset 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+        }
+
+        .blur-spin {
+            animation: vertical-blur 0.1s linear infinite;
+        }
+
+        @keyframes vertical-blur {
+            0% { transform: translateY(-5px); filter: blur(2px); }
+            50% { transform: translateY(5px); filter: blur(2px); }
+            100% { transform: translateY(-5px); filter: blur(2px); }
+        }
+        
+        .slot-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 16:9 Stage Container -->
+    <div class="stage text-white shadow-2xl">
+
+        <!-- HEADER SECTION (15%) -->
+        <div class="h-[15%] w-full flex flex-col items-center justify-center">
+            <h1 class="text-4xl md:text-5xl lg:text-6xl text-yellow-400 drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)] font-fredoka tracking-wide">Phrase Spinner!</h1>
+            <p class="text-base md:text-xl lg:text-2xl text-blue-200 mt-2 font-semibold">Hit the SPIN button to learn food and drink quantities.</p>
+        </div>
+
+        <!-- SLOT MACHINE SECTION (45%) -->
+        <div class="h-[45%] w-full max-w-5xl flex items-center justify-center my-2">
+            <div class="w-full h-full bg-blue-600 rounded-3xl p-4 md:p-6 shadow-2xl border-8 border-yellow-500 relative flex justify-center items-stretch gap-2 md:gap-4">
+                
+                <!-- Reel 1: Numbers -->
+                <div class="slot-window flex-1 bg-white rounded-xl overflow-hidden relative border-4 border-gray-300 flex flex-col items-center justify-center p-2">
+                    <div class="absolute top-0 w-full h-8 bg-gradient-to-b from-black/20 to-transparent z-10 pointer-events-none"></div>
+                    <div id="reel1" class="flex flex-col items-center justify-center w-full h-full text-blue-600">
+                        <div class="h-[60%] w-full slot-icon">
+                            <!-- Ducks container ensures proper wrapping without overflow -->
+                            <div class="flex flex-wrap justify-center items-center gap-1 w-[80%] mx-auto text-4xl md:text-6xl">
+                                <span class="inline-block transform transition-transform">🦆</span>
+                            </div>
+                        </div>
+                        <div class="h-[40%] flex items-center justify-center">
+                            <div class="slot-text-container text-2xl md:text-4xl font-bold font-fredoka uppercase text-center leading-tight transition-opacity duration-200 opacity-100">a</div>
+                        </div>
+                    </div>
+                    <div class="absolute bottom-0 w-full h-8 bg-gradient-to-t from-black/20 to-transparent z-10 pointer-events-none"></div>
+                </div>
+
+                <!-- Reel 2: Quantifiers -->
+                <div class="slot-window flex-1 bg-white rounded-xl overflow-hidden relative border-4 border-gray-300 flex flex-col items-center justify-center p-2">
+                    <div class="absolute top-0 w-full h-8 bg-gradient-to-b from-black/20 to-transparent z-10 pointer-events-none"></div>
+                    <div id="reel2" class="flex flex-col items-center justify-center w-full h-full text-green-600">
+                        <div class="h-[60%] w-full slot-icon text-6xl md:text-8xl">
+                            🥫
+                        </div>
+                        <div class="h-[40%] flex items-center justify-center">
+                            <div class="slot-text-container text-2xl md:text-4xl font-bold font-fredoka uppercase text-center leading-tight transition-opacity duration-200 opacity-100">can</div>
+                        </div>
+                    </div>
+                    <div class="absolute bottom-0 w-full h-8 bg-gradient-to-t from-black/20 to-transparent z-10 pointer-events-none"></div>
+                </div>
+
+                <!-- Reel 3: Food/Drink Items -->
+                <div class="slot-window flex-1 bg-white rounded-xl overflow-hidden relative border-4 border-gray-300 flex flex-col items-center justify-center p-2">
+                    <div class="absolute top-0 w-full h-8 bg-gradient-to-b from-black/20 to-transparent z-10 pointer-events-none"></div>
+                    <div id="reel3" class="flex flex-col items-center justify-center w-full h-full text-red-600">
+                        <div class="h-[60%] w-full slot-icon text-6xl md:text-8xl">
+                            🥤
+                        </div>
+                        <div class="h-[40%] flex items-center justify-center">
+                            <div class="slot-text-container text-xl md:text-3xl font-bold font-fredoka uppercase text-center leading-tight transition-opacity duration-200 opacity-100">cola</div>
+                        </div>
+                    </div>
+                    <div class="absolute bottom-0 w-full h-8 bg-gradient-to-t from-black/20 to-transparent z-10 pointer-events-none"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- CONTROLS SECTION (15%) -->
+        <div class="h-[15%] w-full flex items-center justify-center gap-6 md:gap-12 relative">
+            
+            <!-- Hints Toggle -->
+            <div class="flex items-center space-x-3 bg-black/30 px-4 py-2 rounded-full border border-white/10">
+                <span id="hintsLabel" class="text-lg md:text-2xl font-bold text-yellow-200 font-fredoka tracking-wide">Show Hints:</span>
+                <button id="toggleHintsBtn" onclick="toggleHints()" role="switch" aria-checked="true" aria-labelledby="hintsLabel" class="w-16 h-8 md:w-20 md:h-10 bg-green-500 rounded-full relative transition-colors duration-200 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-yellow-400 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1e1b4b] shadow-inner border-2 border-white/20">
+                    <div id="toggleKnob" class="w-7 h-7 md:w-9 md:h-9 bg-white rounded-full absolute top-0 left-0.5 md:left-0 md:top-0 transform translate-x-8 md:translate-x-10 transition-transform duration-200 shadow-md"></div>
+                </button>
+            </div>
+
+            <!-- Spin Button -->
+            <button id="spinBtn" onclick="spin()" class="bg-red-500 hover:bg-red-400 text-white font-bold py-3 px-10 md:py-4 md:px-16 rounded-full shadow-[0_8px_0_rgb(153,27,27)] active:shadow-[0_0px_0_rgb(153,27,27)] active:translate-y-2 transition-all text-3xl md:text-5xl uppercase tracking-wider font-fredoka focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-yellow-400 focus-visible:ring-offset-4 focus-visible:ring-offset-[#1e1b4b]">
+                SPIN!
+            </button>
+        </div>
+
+        <!-- RESULT SECTION (25%) -->
+        <div class="h-[25%] w-full max-w-4xl flex flex-col items-center justify-start relative">
+            
+            <!-- Result Container (Fully hidden during spin) -->
+            <div id="resultContainer" class="w-full flex flex-col items-center hidden">
+                <div id="phraseDisplay" class="bg-black/60 border-2 border-blue-400 rounded-3xl p-4 md:p-6 w-full flex flex-col sm:flex-row items-center justify-center text-center shadow-lg transition-all duration-300 opacity-0 transform translate-y-4 gap-4 h-[12vh] min-h-[5rem]">
+                    
+                    <button id="showAnswerBtn" onclick="revealAnswer()" class="hidden px-8 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-full shadow-[0_4px_0_rgb(161,98,7)] active:shadow-[0_0px_0_rgb(161,98,7)] active:translate-y-1 transition-all text-2xl md:text-3xl font-fredoka focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white">
+                        Show Answer
+                    </button>
+                    
+                    <span class="text-3xl md:text-5xl text-yellow-300 font-semibold tracking-wide hidden" id="phraseText"></span>
+                    
+                    <button onclick="readAloud()" id="audioBtn" aria-label="Play phrase audio" class="hidden shrink-0 ml-4 bg-blue-500 hover:bg-blue-400 text-white p-4 rounded-full shadow-md transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-yellow-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 md:h-10 md:w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5 10v4a2 2 0 002 2h2.586l3.707 3.707a1 1 0 001.707-.707V4.993a1 1 0 00-1.707-.707L7.586 8H7a2 2 0 00-2 2z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Data Definitions & SVGs ---
+
+        // Custom SVGs for distinctive clarity
+        const svgPizzaWhole = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" class="w-[1em] h-[1em] inline-block drop-shadow-lg"><circle cx="32" cy="32" r="28" fill="#d97706"/><circle cx="32" cy="32" r="24" fill="#fef08a"/><circle cx="24" cy="20" r="4.5" fill="#ef4444"/><circle cx="40" cy="36" r="4.5" fill="#ef4444"/><circle cx="20" cy="40" r="4.5" fill="#ef4444"/><circle cx="44" cy="20" r="4.5" fill="#ef4444"/><circle cx="32" cy="48" r="4.5" fill="#ef4444"/><circle cx="34" cy="26" r="4.5" fill="#ef4444"/></svg>`;
+        const svgChipsBag = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" class="w-[1em] h-[1em] inline-block drop-shadow-lg"><path fill="#ef4444" d="M8 12h48v40H8z"/><path fill="#ef4444" d="M8 12l3-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4 4-4 3 4zM8 52l3 4 4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4 4-4 4 4 3-4z"/><ellipse cx="32" cy="32" rx="16" ry="12" fill="#fef08a"/><path fill="#eab308" d="M28 26c5-2 10 2 9 6-1 4-7 6-10 3-1.5-2.5-0.5-7.5 1-9z"/><path fill="#ca8a04" d="M38 36c4-1 8 2 7 5-1 3-5 5-8 3-1.5-2-1-6 1-8z"/></svg>`;
+        const svgEmptyCup = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" class="w-[1em] h-[1em] inline-block drop-shadow-lg"><path d="M16 16v24c0 7.7 6.3 14 14 14h4c7.7 0 14-6.3 14-14V16H16z" fill="#f3f4f6" stroke="#9ca3af" stroke-width="3"/><path d="M48 24h6c5.5 0 10 4.5 10 10s-4.5 10-10 10h-6" fill="none" stroke="#9ca3af" stroke-width="4"/><ellipse cx="32" cy="16" rx="16" ry="6" fill="#e5e7eb" stroke="#9ca3af" stroke-width="3"/><ellipse cx="32" cy="16" rx="12" ry="3" fill="#d1d5db"/></svg>`;
+        const svgHotChocolate = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" class="w-[1em] h-[1em] inline-block drop-shadow-lg"><path d="M14 20v24c0 7.7 6.3 14 14 14h8c7.7 0 14-6.3 14-14V20H14z" fill="#3b82f6" stroke="#2563eb" stroke-width="3"/><path d="M50 28h5c5.5 0 10 4.5 10 10s-4.5 10-10 10h-5" fill="none" stroke="#2563eb" stroke-width="4"/><ellipse cx="32" cy="20" rx="18" ry="7" fill="#78350f"/><circle cx="26" cy="18" r="3.5" fill="#ffffff"/><circle cx="36" cy="19" r="3" fill="#ffffff"/><path d="M26 12 Q24 6 28 0M38 10 Q36 4 40 -2" fill="none" stroke="#d1d5db" stroke-width="3" stroke-linecap="round" opacity="0.7"/></svg>`;
+
+        // Visual mapping for all possible options
+        const dict = {
+            // Quantifiers
+            "packet": "🛍️", "box": "📦", "slice": "🍕", "can": "🥫", "bottle": "🍾", "cup": svgEmptyCup,
+            // Items
+            "chicken legs": "🍗", "French fries": "🍟", "potato chips": svgChipsBag, 
+            "pizza": svgPizzaWhole, "cola": "🥤", "lemon tea": "🍹", "hot chocolate": svgHotChocolate, "coffee": "☕"
+        };
+        
+        const numberWords = {
+            "a": "a", "2": "two", "3": "three", "4": "four", "5": "five"
+        };
+
+        const allNumbers = ["a", "2", "3", "4", "5"];
+
+        // The specific constrained rules defined by the user
+        const logicRules = [
+            {
+                type: "Drinks",
+                quantifiers: ["can", "bottle", "cup"],
+                items: ["cola", "lemon tea", "hot chocolate", "coffee"]
+            },
+            {
+                type: "Snacks",
+                quantifiers: ["packet", "box"],
+                items: ["chicken legs", "French fries", "potato chips"]
+            },
+            {
+                type: "Pizza",
+                quantifiers: ["slice"],
+                items: ["pizza"]
+            }
+        ];
+
+        // 1. Build the full array of all valid combinations (Total = 95)
+        let allValidCombinations = [];
+        logicRules.forEach(rule => {
+            allNumbers.forEach(num => {
+                rule.quantifiers.forEach(quant => {
+                    rule.items.forEach(item => {
+                        allValidCombinations.push({ num, quant, item });
+                    });
+                });
+            });
+        });
+
+        // 2. Uniform Random Picker (Shuffle Bag)
+        let shuffleBag = [];
+        function generateTargetCombination() {
+            // Refill and shuffle the bag if empty
+            if (shuffleBag.length === 0) {
+                shuffleBag = [...allValidCombinations];
+                for (let i = shuffleBag.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffleBag[i], shuffleBag[j]] = [shuffleBag[j], shuffleBag[i]];
+                }
+            }
+            return shuffleBag.pop();
+        }
+
+        let isSpinning = false;
+        let currentPhrase = "";
+        let showHints = true;
+
+        // UI toggling for hints
+        function toggleHints() {
+            showHints = !showHints;
+            const btn = document.getElementById('toggleHintsBtn');
+            const knob = document.getElementById('toggleKnob');
+            
+            btn.setAttribute('aria-checked', showHints);
+            
+            const textContainers = document.querySelectorAll('.slot-text-container');
+
+            if (showHints) {
+                btn.classList.replace('bg-gray-400', 'bg-green-500');
+                // Use transform logic based on screen sizing if classes were added
+                knob.classList.add('translate-x-8', 'md:translate-x-10');
+                
+                textContainers.forEach(el => {
+                    el.classList.remove('opacity-0');
+                    el.classList.add('opacity-100');
+                });
+            } else {
+                btn.classList.replace('bg-green-500', 'bg-gray-400');
+                knob.classList.remove('translate-x-8', 'md:translate-x-10');
+                
+                textContainers.forEach(el => {
+                    el.classList.remove('opacity-100');
+                    el.classList.add('opacity-0');
+                });
+            }
+        }
+
+        function revealAnswer() {
+            document.getElementById('showAnswerBtn').classList.add('hidden');
+            const phraseText = document.getElementById('phraseText');
+            phraseText.innerText = currentPhrase;
+            phraseText.classList.remove('hidden');
+            
+            document.getElementById('audioBtn').classList.remove('hidden');
+            readAloud();
+        }
+
+        // Apply grammar rules for pluralization (creates final string)
+        function formatPhrase(num, quant, item) {
+            let pluralQuant = quant;
+            let wordNum = numberWords[num] || num;
+            
+            if (num !== "a") {
+                if (quant === "box") {
+                    pluralQuant = "boxes";
+                } else {
+                    pluralQuant = quant + "s";
+                }
+            }
+            
+            let phrase = `${wordNum} ${pluralQuant} of ${item}`;
+            // Sentence case: Capitalize only first letter
+            return phrase.charAt(0).toUpperCase() + phrase.slice(1);
+        }
+
+        // --- Visual Helpers ---
+
+        // Helper to generate multiple duck spans for Reel 1
+        function getDucksHTML(numStr) {
+            const count = numStr === "a" ? 1 : parseInt(numStr);
+            let ducksHtml = '';
+            for(let i=0; i<count; i++){
+                ducksHtml += `<span class="inline-block">🦆</span>`;
+            }
+            // By wrapping ducks inside a w-[80%] container, flex-wrap will naturally wrap 4 and 5 symmetrically
+            return `<div class="flex flex-wrap justify-center items-center gap-1 w-[80%] mx-auto text-4xl md:text-6xl">${ducksHtml}</div>`;
+        }
+
+        // Updates the HTML of a specific reel
+        function updateReelDOM(reelId, text) {
+            const el = document.getElementById(reelId);
+            const isHidden = !showHints;
+            const opacityClass = isHidden ? 'opacity-0' : 'opacity-100';
+            
+            let textColor = 'text-gray-800';
+            let iconHtml = '';
+            let textClass = 'text-2xl md:text-4xl';
+
+            if (reelId === 'reel1') {
+                textColor = 'text-blue-600';
+                iconHtml = getDucksHTML(text);
+            } else if (reelId === 'reel2') {
+                textColor = 'text-green-600';
+                iconHtml = `<div class="text-6xl md:text-8xl">${dict[text] || "❓"}</div>`;
+            } else if (reelId === 'reel3') {
+                textColor = 'text-red-600';
+                iconHtml = `<div class="text-6xl md:text-8xl">${dict[text] || "❓"}</div>`;
+                // Make long names slightly smaller to prevent breaking layout
+                textClass = text.length > 12 ? 'text-[1.2rem] md:text-[1.8rem]' : 'text-xl md:text-3xl';
+            }
+            
+            el.innerHTML = `
+                <div class="h-[60%] w-full slot-icon">
+                    ${iconHtml}
+                </div>
+                <div class="h-[40%] flex items-center justify-center">
+                    <div class="slot-text-container ${textClass} font-bold font-fredoka uppercase text-center leading-tight transition-opacity duration-200 ${opacityClass} ${textColor}">${text}</div>
+                </div>
+            `;
+        }
+
+        const getRandomElement = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+        async function spin() {
+            if (isSpinning) return;
+            isSpinning = true;
+
+            const btn = document.getElementById('spinBtn');
+            const phraseDisplay = document.getElementById('phraseDisplay');
+            const audioBtn = document.getElementById('audioBtn');
+            const resultContainer = document.getElementById('resultContainer');
+            
+            // UI setup for spinning
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            // Hide result container completely during spin
+            resultContainer.classList.add('hidden');
+            phraseDisplay.classList.remove('opacity-100', 'translate-y-0');
+            phraseDisplay.classList.add('opacity-0', 'translate-y-4');
+            
+            audioBtn.classList.add('hidden');
+            document.getElementById('showAnswerBtn').classList.add('hidden');
+            document.getElementById('phraseText').classList.add('hidden');
+
+            // Generate the target securely from uniform distribution
+            const target = generateTargetCombination();
+            currentPhrase = formatPhrase(target.num, target.quant, target.item);
+
+            const r1 = document.getElementById('reel1');
+            const r2 = document.getElementById('reel2');
+            const r3 = document.getElementById('reel3');
+
+            // Animation classes
+            r1.classList.add('blur-spin');
+            r2.classList.add('blur-spin');
+            r3.classList.add('blur-spin');
+
+            // Find all possible items for visual flashing effect
+            const allQ = Object.keys(dict).filter(k => ["packet", "box", "slice", "can", "bottle", "cup"].includes(k));
+            const allI = Object.keys(dict).filter(k => !allQ.includes(k));
+
+            // Flashing intervals
+            const spinInterval1 = setInterval(() => updateReelDOM('reel1', getRandomElement(allNumbers)), 100);
+            const spinInterval2 = setInterval(() => updateReelDOM('reel2', getRandomElement(allQ)), 100);
+            const spinInterval3 = setInterval(() => updateReelDOM('reel3', getRandomElement(allI)), 100);
+
+            // Promise wrapper to stop reels
+            const stopReel = (interval, reelEl, finalValue, delay) => {
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        clearInterval(interval);
+                        reelEl.classList.remove('blur-spin');
+                        updateReelDOM(reelEl.id, finalValue);
+                        
+                        // Impact pop effect
+                        reelEl.style.transform = 'scale(1.08)';
+                        setTimeout(() => reelEl.style.transform = 'scale(1)', 150);
+                        
+                        resolve();
+                    }, delay);
+                });
+            };
+
+            // Stop reels efficiently together to keep time ~2.3 seconds
+            await Promise.all([
+                stopReel(spinInterval1, r1, target.num, 1000),
+                stopReel(spinInterval2, r2, target.quant, 1500),
+                stopReel(spinInterval3, r3, target.item, 2000)
+            ]);
+
+            // Final Display Phase
+            setTimeout(() => {
+                resultContainer.classList.remove('hidden');
+                
+                document.getElementById('phraseText').classList.add('hidden');
+                document.getElementById('showAnswerBtn').classList.remove('hidden');
+
+                phraseDisplay.classList.remove('opacity-0', 'translate-y-4');
+                phraseDisplay.classList.add('opacity-100', 'translate-y-0');
+                
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                isSpinning = false;
+            }, 300);
+        }
+
+        // --- Text to Speech Feature ---
+        function readAloud() {
+            if (!currentPhrase) return;
+            
+            window.speechSynthesis.cancel();
+            
+            const utterance = new SpeechSynthesisUtterance(currentPhrase);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.9;
+            
+            const voices = window.speechSynthesis.getVoices();
+            const englishVoice = voices.find(voice => voice.lang.includes('en-') && voice.name.includes('Google'));
+            if (englishVoice) {
+                utterance.voice = englishVoice;
+            }
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = window.speechSynthesis.getVoices;
+        }
+
+    </script>
+</body>
+</html>
